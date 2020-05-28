@@ -1,4 +1,5 @@
 #include "level.h"
+#include <stdio.h>
 
 #include <stdlib.h>
 #include <assert.h>
@@ -44,16 +45,26 @@ void level_fill_random(level *lvl, int wall_size){
     // Check that the wall_size is smaller than the level
     assert(wall_size<lvl->size_x);
     assert(wall_size<lvl->size_y);
+
     // Compute a good number of walls so that up to 1/10 of the level is filled
     int n_walls = lvl->size_x*lvl->size_y/wall_size/10;
+//    int n_walls = 0;
+
     // Add each of the walls
     for(int i=0;i<n_walls;i++){
-        int vert = rand()%2; // vertical or horizontal?
+        int vert = rand()%2; // vertical or horizontal? 1 = vert, 0 = hor
+        //La pared siempre se ubicará entre 0 en x o en y el tamaño del nivel en x
+        //o en y (si es horizontal o vertical respectivamente) menos el tamaño de
+        //la pared, luego, para "renderizarla", se llenaran tantas celdas en x o en
+        //y (nuevamente, si es horizontal o vertical respectivamente) como el numero
+        //del tamaño de la pared
+
         if(vert){
             // Initial wall position
             int wx = rand()%(lvl->size_x);
             int wy = rand()%(lvl->size_y-wall_size);
-            // Iterate to place wall vertically
+
+            // Iterate to place wall vertically; 
             for(int k=0;k<wall_size;k++){
                 lvl->cells[wy+k][wx] = '#';
             }

@@ -31,6 +31,7 @@ typedef enum {MINION=0, BRUTE=1} enemykind;
 typedef struct {
     entity ent;
     enemykind kind;
+    float plaPos[2];
 } enemy;
 
 // ==== BULLET DEFINTION

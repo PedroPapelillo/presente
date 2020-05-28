@@ -1,6 +1,6 @@
-
 #include <raylib.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "level.h"
 #include "draw.h"
@@ -12,8 +12,9 @@ int main(int argc, char const *argv[]){
     const int screen_width = 800;
     const int screen_height = 600;
 
-    InitWindow(screen_width,screen_height,"Presente - the game");
+    InitWindow(screen_width,screen_height,"Presente profe");
     SetTargetFPS(60);
+    int frames = 0;
 
     // Initialize level and fill randomly
     level *lvl = level_new(50,40);
@@ -21,11 +22,10 @@ int main(int argc, char const *argv[]){
 
     // Initialize state (and add enemies)
     state *sta = state_new();
-    state_populate_random(lvl,sta,40);
+    state_populate_random(lvl,sta,50);
 
     // Main loop
     while(!WindowShouldClose()){
-
         // Update input depending if keys are pressed or not
         sta->button_state[0] = IsKeyDown(KEY_D);
         sta->button_state[1] = IsKeyDown(KEY_W);
@@ -47,13 +47,22 @@ int main(int argc, char const *argv[]){
 
             draw_state(lvl, sta);
 
-            DrawText("Presente profe!",190,200,20,LIGHTGRAY);
+            DrawText("Presente profe!",20,20,20,LIGHTGRAY);
+
+            if(sta->n_enemies != 0)
+            {
+                DrawText(FormatText("Tiempo: %03i segundos", frames/60),20,40,20,RED);
+                DrawText(FormatText("Enemigos restantes: %03i", sta->n_enemies),20,60,20,RED);
+                frames+=1;
+            }else
+            {
+                DrawText(FormatText("You win! \nTiempo: %03i segundos", frames/60),100,150,60,RED);
+            }
 
         EndDrawing();
-
     }
 
-    // Closer window
+    // Close window
     CloseWindow();
 
     // Free memory

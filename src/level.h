@@ -7,6 +7,7 @@
 '.' = free cells
 '#' = walls
 */
+
 typedef struct {
     int size_x, size_y;
     char **cells;
@@ -23,6 +24,5 @@ void level_fill_random(level *lvl, int wall_size);
 
 // Destroy a level, free its memory.
 void level_free(level *lvl);
-
 
 #endif

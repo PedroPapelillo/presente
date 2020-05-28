@@ -36,8 +36,8 @@ void state_update(level *lvl, state *sta){
     mov_y += sta->button_state[3];
     float mov_norm = sqrt(mov_x*mov_x+mov_y*mov_y);
 
+    // If nothing is being pressed, deacelerate the player
     if(mov_norm==0 || sta->pla.ent.dead){
-        // If nothing is being pressed, deacelerate the player
         sta->pla.ent.vx *= 0.6;
         sta->pla.ent.vy *= 0.6;
     }else{
@@ -85,15 +85,49 @@ void state_update(level *lvl, state *sta){
     }
 
     // == Update entities
+    
     // Update player
     entity_physics(lvl,&sta->pla.ent);
     if(sta->pla.ent.hp<=0) sta->pla.ent.dead=1;
+
     // Update enemies
     for(int i=0;i<sta->n_enemies;i++){
-        entity_physics(lvl,&sta->enemies[i].ent);
+        float distance = sqrt(pow(sta->enemies[i].ent.x - sta->pla.ent.x,2)+pow(sta->enemies[i].ent.y - sta->pla.ent.y,2));
+        if(sta->enemies[i].kind == MINION)
+        {
+            if(distance<=2)
+            {
+                sta->enemies[i].ent.vx *= 0;
+                sta->enemies[i].ent.vy *= 0;
+                entity_physics(lvl,&sta->enemies[i].ent);
+            }
+            else if(distance<=250)
+            {
+                sta->enemies[i].ent.vx = (sta->pla.ent.x - sta->enemies[i].ent.x)/pow(distance,0.6);
+                sta->enemies[i].ent.vy = (sta->pla.ent.y - sta->enemies[i].ent.y)/pow(distance,0.6);
+                entity_physics(lvl,&sta->enemies[i].ent);
+            }
+        }
+        else
+        {
+            if(distance <= 160 && sta->enemies[i].ent.vx == 0 && sta->enemies[i].ent.vy == 0)
+            {
+                sta->enemies[i].plaPos[0] = sta->pla.ent.x;
+                sta->enemies[i].plaPos[1] = sta->pla.ent.y;
+                sta->enemies[i].ent.vx = (sta->enemies[i].plaPos[0] - sta->enemies[i].ent.x)*3/pow(pow(sta->enemies[i].plaPos[0] - sta->enemies[i].ent.x,2) + pow(sta->enemies[i].plaPos[1] - sta->enemies[i].ent.y,2),0.5);
+                sta->enemies[i].ent.vy = (sta->enemies[i].plaPos[1] - sta->enemies[i].ent.y)*3/pow(pow(sta->enemies[i].plaPos[0] - sta->enemies[i].ent.x,2) + pow(sta->enemies[i].plaPos[1] - sta->enemies[i].ent.y,2),0.5);
+            }
+            else if(pow(pow(sta->enemies[i].plaPos[0] - sta->enemies[i].ent.x,2)+pow(sta->enemies[i].plaPos[1] - sta->enemies[i].ent.y,2),0.5) <= 3)
+            {
+                sta->enemies[i].ent.vx = 0;
+                sta->enemies[i].ent.vy = 0;
+            }
+            entity_physics(lvl,&sta->enemies[i].ent);
+        }
         // Kill enemy if it has less than 0 HP
         if(sta->enemies[i].ent.hp<=0) sta->enemies[i].ent.dead = 1;
     }
+
     // Update bullets
     for(int i=0;i<sta->n_bullets;i++){
         int col = entity_physics(lvl,&sta->bullets[i].ent);
@@ -153,9 +187,10 @@ void state_populate_random(level *lvl, state *sta, int n_enemies){
                 new_enemy->ent.y = (posy+0.5)*TILE_SIZE;
                 // Pick an enemy tipe and set variables accordingly
                 int brute = rand()%4==0; // brute has 1/4 chance.
+                //int brute = 1;
                 if(brute){
-                    new_enemy->kind   = BRUTE;
-                    new_enemy->ent.hp = BRUTE_HP;
+                    new_enemy->kind    = BRUTE;
+                    new_enemy->ent.hp  = BRUTE_HP;
                     new_enemy->ent.rad = BRUTE_RAD;
                 }else{
                     new_enemy->kind   = MINION;
